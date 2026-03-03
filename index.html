@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Farel Rizky Pratama · Futuristic Portfolio v5</title>
+    <!-- SEO Meta -->
+    <meta name="description" content="Portfolio futuristik Farel Rizky Pratama - Front-End Web Developer dengan efek mutakhir dan multi-page experience">
+    <meta name="keywords" content="Front-End Developer, Futuristic Portfolio, 3D Effects, Particle.js, Indonesia">
+    <meta name="author" content="Farel Rizky Pratama">
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Three.js & Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <style>
+        /* ========== VARIABLES & RESET ========== */
+        :root {
+            --primary: #6c5ce7;
+            --primary-glow: #a29bfe;
+            --secondary: #00cec9;
+            --accent: #fd79a8;
+            --dark: #0a0c0f;
+            --darker: #050607;
+            --light: #f0f4f8;
+            --gray: #2d3436;
+            --glass-bg: rgba(10, 12, 15, 0.7);
+            --glass-border: rgba(108, 92, 231, 0.2);
+            --font-primary: 'Space Grotesk', sans-serif;
+            --font-secondary: 'Inter', sans-serif;
+            --cursor-x: 50%;
+            --cursor-y: 50%;
+            --container-padding: clamp(1rem, 5vw, 2rem);
+            --section-spacing: clamp(2rem, 8vh, 5rem);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: var(--font-secondary);
+            background: var(--dark);
+            color: var(--light);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            opacity: 0;
+            transition: opacity 1s ease;
+            line-height: 1.6;
+        }
+
+        body.loaded {
+            opacity: 1;
+        }
+
+        /* ========== CUSTOM CURSOR - NONAKTIF DI MOBILE ========== */
+        @media (min-width: 768px) {
+            .cursor {
+                position: fixed;
+                width: 40px;
+                height: 40px;
+                border: 2px solid var(--primary);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9999;
+                mix-blend-mode: difference;
+                transition: transform 0.2s;
+                transform: translate(-50%, -50%);
+                backdrop-filter: invert(1);
+            }
+
+            .cursor-follower {
+                position: fixed;
+                width: 8px;
+                height: 8px;
+                background: var(--secondary);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9999;
+                transition: 0.1s;
+                transform: translate(-50%, -50%);
+                box-shadow: 0 0 20px var(--secondary);
+            }
+        }
+
+        /* ========== PARTICLE BACKGROUND ========== */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ========== 3D BACKGROUND (Three.js) ========== */
+        #canvas-3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* ========== MAIN CONTENT WRAPPER ========== */
+        .main-wrapper {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ========== FUTURISTIC NAVBAR ========== */
+        .navbar {
+            position: fixed;
+            top: clamp(10px, 3vh, 20px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(95%, 1200px);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 60px;
+            padding: clamp(0.6rem, 2vw, 1rem) clamp(1rem, 3vw, 2rem);
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(108, 92, 231, 0.3);
+            animation: slideDown 1s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo a {
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            position: relative;
+            padding: 0 10px;
+        }
+
+        .logo a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            filter: blur(15px);
+            opacity: 0.5;
+            z-index: -1;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: clamp(0.5rem, 2vw, 2rem);
+        }
+
+        .nav-link {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            padding: 0.5rem clamp(0.5rem, 1.5vw, 1rem);
+            border-radius: 30px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, var(--primary), transparent);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+            z-index: -1;
+            opacity: 0;
+        }
+
+        .nav-link:hover::before {
+            width: 150%;
+            height: 150%;
+            opacity: 0.3;
+        }
+
+        .nav-link.active {
+            background: rgba(108, 92, 231, 0.2);
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        .nav-link i {
+            margin-right: 5px;
+        }
+
+        .hamburger {
+            display: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--primary);
+        }
+
+        /* ========== PAGE TRANSITION ========== */
+        .page-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            z-index: 9998;
+            transform: translateY(100%);
+            transition: transform 0.8s cubic-bezier(0.86, 0, 0.07, 1);
+            pointer-events: none;
+        }
+
+        .page-transition.active {
+            transform: translateY(0);
+        }
+
+        /* ========== PAGES CONTAINER ========== */
+        .pages-container {
+            position: relative;
+            min-height: 100vh;
+            margin-top: 100px;
+            padding: var(--container-padding);
+        }
+
+        .page {
+            position: absolute;
+            width: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s, visibility 0.5s;
+            pointer-events: none;
+        }
+
+        .page.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: all;
+            position: relative;
+        }
+
+        /* ========== HERO SECTION ========== */
+        .hero-content {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: clamp(1rem, 5vw, 2rem);
+        }
+
+        .hero-badge {
+            background: rgba(108, 92, 231, 0.2);
+            border: 1px solid var(--primary);
+            padding: clamp(0.5rem, 2vw, 0.8rem) clamp(1rem, 4vw, 2rem);
+            border-radius: 50px;
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
+            letter-spacing: 2px;
+            margin-bottom: clamp(1rem, 4vh, 2rem);
+            backdrop-filter: blur(5px);
+            animation: glowPulse 2s infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 10px var(--primary); }
+            50% { box-shadow: 0 0 30px var(--primary); }
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 10vw, 6rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: clamp(1rem, 3vh, 1.5rem);
+            font-family: var(--font-primary);
+            position: relative;
+            word-break: break-word;
+        }
+
+        .hero-title span {
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: 200% 200%;
+            animation: gradientMove 5s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            color: rgba(255,255,255,0.7);
+            max-width: min(800px, 90%);
+            margin-bottom: clamp(1.5rem, 5vh, 3rem);
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: clamp(0.8rem, 3vw, 1.5rem);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-futuristic {
+            padding: clamp(0.8rem, 2.5vw, 1.2rem) clamp(1.5rem, 4vw, 2.8rem);
+            border: none;
+            border-radius: 50px;
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 5px 20px rgba(108, 92, 231, 0.5);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.3), transparent);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            width: 200%;
+            height: 200%;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: white;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px var(--primary);
+        }
+
+        /* ========== HOLOGRAPHIC CARD ========== */
+        .holographic-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: clamp(1.5rem, 4vw, 2rem);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .holographic-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, var(--primary), transparent, var(--secondary), transparent);
+            animation: rotate 4s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .holographic-card:hover::before {
+            opacity: 0.3;
+        }
+
+        .holographic-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(108, 92, 231, 0.3);
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========== STATS SECTION ========== */
+        .stats-container {
+            display: flex;
+            gap: clamp(1rem, 4vw, 3rem);
+            margin-top: clamp(2rem, 8vh, 4rem);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            padding: clamp(1rem, 3vw, 1.5rem) clamp(1.5rem, 4vw, 2.5rem);
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .stat-number {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* ========== ABOUT SECTION ========== */
+        .about-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+            gap: clamp(1.5rem, 4vw, 3rem);
+            align-items: center;
+        }
+
+        .profile-image-container {
+            width: min(250px, 60vw);
+            height: min(250px, 60vw);
+            margin: 0 auto;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--primary);
+            box-shadow: 0 0 50px var(--primary);
+        }
+
+        .profile-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* ========== SKILLS GRID ========== */
+        .skills-grid-futuristic {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+            gap: clamp(1rem, 3vw, 2rem);
+            margin-top: 3rem;
+        }
+
+        .skill-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: clamp(1.5rem, 3vw, 2rem);
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .skill-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .skill-card:hover::after {
+            left: 100%;
+        }
+
+        .skill-icon {
+            font-size: clamp(2rem, 5vw, 3rem);
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .skill-level {
+            margin-top: 1rem;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .skill-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0;
+            transition: width 1.5s cubic-bezier(0.2, 0.9, 0.3, 1);
+        }
+
+        /* ========== PROJECT CARDS 3D ========== */
+        .projects-3d-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+            gap: clamp(1rem, 3vw, 2rem);
+            perspective: 1000px;
+        }
+
+        .project-card-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            cursor: pointer;
+            height: 100%;
+        }
+
+        .project-card-3d:hover {
+            transform: rotateY(10deg) rotateX(5deg) translateZ(20px);
+        }
+
+        .project-inner {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: clamp(1.2rem, 3vw, 1.5rem);
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), transparent);
+            opacity: 0.3;
+            transition: opacity 0.3s;
+        }
+
+        .project-card-3d:hover .project-image::before {
+            opacity: 0.6;
+        }
+
+        .project-tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .tech-tag {
+            padding: 0.3rem 1rem;
+            background: rgba(108, 92, 231, 0.2);
+            border: 1px solid var(--primary);
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: var(--primary);
+        }
+
+        /* ========== TIMELINE FUTURISTIC ========== */
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary), var(--secondary), var(--accent));
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        .timeline-item {
+            padding: 2rem;
+            position: relative;
+            width: 50%;
+            margin-bottom: 2rem;
+        }
+
+        .timeline-item:nth-child(odd) {
+            left: 0;
+        }
+
+        .timeline-item:nth-child(even) {
+            left: 50%;
+        }
+
+        .timeline-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 20px;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content::before {
+            right: -20px;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content::before {
+            left: -20px;
+        }
+
+        /* ========== CONTACT FORM FUTURISTIC ========== */
+        .contact-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr));
+            gap: clamp(1.5rem, 4vw, 3rem);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .form-group-futuristic {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group-futuristic input,
+        .form-group-futuristic textarea {
+            width: 100%;
+            padding: 1.2rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group-futuristic input:focus,
+        .form-group-futuristic textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 30px var(--primary);
+            background: rgba(108, 92, 231, 0.1);
+        }
+
+        .form-group-futuristic label {
+            position: absolute;
+            left: 1rem;
+            top: 1rem;
+            color: rgba(255,255,255,0.5);
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .form-group-futuristic input:focus ~ label,
+        .form-group-futuristic input:valid ~ label,
+        .form-group-futuristic textarea:focus ~ label,
+        .form-group-futuristic textarea:valid ~ label {
+            transform: translateY(-2rem) scale(0.8);
+            color: var(--primary);
+        }
+
+        /* ========== SOCIAL ICONS ========== */
+        .social-icons {
+            display: flex;
+            gap: clamp(1rem, 3vw, 1.5rem);
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .social-icon {
+            width: clamp(50px, 10vw, 60px);
+            height: clamp(50px, 10vw, 60px);
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: clamp(1.5rem, 4vw, 1.8rem);
+            text-decoration: none;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .social-icon::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, var(--primary), transparent);
+            transform: scale(0);
+            transition: transform 0.3s;
+        }
+
+        .social-icon:hover::before {
+            transform: scale(2);
+        }
+
+        .social-icon:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px var(--primary);
+        }
+
+        /* ========== QUICK FACTS ========== */
+        .quick-facts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* ========== FOOTER ========== */
+        .footer-futuristic {
+            margin-top: var(--section-spacing);
+            padding: 2rem 0;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer-futuristic::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, var(--primary), transparent, var(--secondary), transparent);
+            animation: rotate 10s linear infinite;
+            opacity: 0.1;
+        }
+
+        /* ========== SECTION TITLES ========== */
+        .section-title {
+            font-size: clamp(2rem, 6vw, 3rem);
+            text-align: center;
+            margin-bottom: clamp(2rem, 6vh, 3rem);
+        }
+
+        .section-title span {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .navbar {
+                width: 95%;
+                padding: 0.6rem 1rem;
+            }
+            
+            .hamburger {
+                display: block;
+            }
+            
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 90%;
+                background: var(--glass-bg);
+                backdrop-filter: blur(20px);
+                flex-direction: column;
+                align-items: center;
+                padding: 2rem;
+                border-radius: 30px;
+                border: 1px solid var(--glass-border);
+                transition: 0.3s;
+                gap: 1rem;
+            }
+            
+            .nav-menu.active {
+                left: 5%;
+            }
+            
+            .nav-link {
+                white-space: normal;
+                width: 100%;
+                text-align: center;
+            }
+            
+            .contact-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline::before {
+                left: 30px;
+            }
+            
+            .timeline-item {
+                width: 100%;
+                left: 0 !important;
+                padding-left: 60px;
+                padding-right: 1rem;
+            }
+            
+            .timeline-content::before {
+                left: -20px !important;
+            }
+            
+            .cursor, .cursor-follower {
+                display: none;
+            }
+            
+            .hero-cta {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn-futuristic {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .stat-card {
+                min-width: 120px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .stat-card {
+                width: 100%;
+                max-width: 200px;
+            }
+            
+            .project-card-3d:hover {
+                transform: none;
+            }
+            
+            .holographic-card:hover {
+                transform: none;
+            }
+        }
+
+        /* ========== UTILITY CLASSES ========== */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--container-padding);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* ========== BACK TO TOP BUTTON ========== */
+        #backToTop {
+            position: fixed;
+            bottom: clamp(20px, 5vh, 30px);
+            right: clamp(20px, 5vw, 30px);
+            width: clamp(40px, 8vw, 50px);
+            height: clamp(40px, 8vw, 50px);
+            border-radius: 50%;
+            background: var(--primary);
+            border: none;
+            color: white;
+            cursor: pointer;
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px var(--primary);
+            font-size: clamp(1rem, 3vw, 1.2rem);
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Cursor (hanya tampil di desktop) -->
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-follower" id="cursorFollower"></div>
+    
+    <!-- Particle Background -->
+    <div id="particles-js"></div>
+    
+    <!-- 3D Canvas Background -->
+    <canvas id="canvas-3d"></canvas>
+    
+    <!-- Page Transition -->
+    <div class="page-transition" id="pageTransition"></div>
+    
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <a href="#" data-page="home">My<span>Portofolio</span></a>
+                </div>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="#home" class="nav-link active" data-page="home"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#about" class="nav-link" data-page="about"><i class="fas fa-user"></i> About</a></li>
+                    <li><a href="#skills" class="nav-link" data-page="skills"><i class="fas fa-code"></i> Skills</a></li>
+                    <li><a href="#projects" class="nav-link" data-page="projects"><i class="fas fa-cubes"></i> Projects</a></li>
+                    <li><a href="#experience" class="nav-link" data-page="experience"><i class="fas fa-briefcase"></i> Experience</a></li>
+                    <li><a href="#contact" class="nav-link" data-page="contact"><i class="fas fa-envelope"></i> Contact</a></li>
+                </ul>
+                <div class="hamburger" id="hamburger">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Pages Container -->
+        <div class="pages-container">
+            <!-- Home Page -->
+            <div class="page active" id="home">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <i class="fas fa-crown"></i> MY PORTFOLIO
+                    </div>
+                    <h1 class="hero-title">
+                        Farel <span>Rizky</span> Pratama
+                    </h1>
+                    <div class="hero-subtitle">
+                        Front-End Web Developer · Membangun Realitas Digital Masa Depan
+                    </div>
+                    <div class="hero-cta">
+                        <a href="#" class="btn-futuristic btn-primary" data-page="projects">
+                            <i class="fas fa-rocket"></i> Jelajahi Projects
+                        </a>
+                        <!-- Tombol Download CV PALSU (hanya notifikasi) -->
+                        <a href="#" class="btn-futuristic btn-outline" id="downloadCV">
+                            <i class="fas fa-download"></i> Download CV (Demo)
+                        </a>
+                    </div>
+                    
+                    <!-- Stats -->
+                    <div class="stats-container">
+                        <div class="holographic-card stat-card">
+                            <div class="stat-number">1+</div>
+                            <div>Tahun Experience</div>
+                        </div>
+                        <div class="holographic-card stat-card">
+                            <div class="stat-number">10+</div>
+                            <div>Project Selesai</div>
+                        </div>
+                        <div class="holographic-card stat-card">
+                            <div class="stat-number">10+</div>
+                            <div>Klien Puas</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- About Page -->
+            <div class="page" id="about">
+                <div class="container">
+                    <h2 class="section-title">
+                        About <span>Me</span>
+                    </h2>
+                    
+                    <div class="about-grid">
+                        <!-- Profile Card 3D -->
+                        <div class="project-card-3d">
+                            <div class="project-inner" style="text-align: center;">
+                                <div class="profile-image-container">
+                                    <img src="rel.jpeg" alt="Profile" class="profile-image">
+                                </div>
+                                <h3 style="font-size: clamp(1.5rem, 4vw, 2rem); margin-bottom: 0.5rem;">Farel Rizky Pratama</h3>
+                                <div style="color: var(--primary); margin-bottom: 1rem;">Front-End Architect</div>
+                                <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                                    <span class="tech-tag">Indonesia</span>
+                                    <span class="tech-tag">Remote</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Bio -->
+                        <div>
+                            <div class="holographic-card">
+                                <p style="font-size: clamp(1rem, 2.5vw, 1.2rem); line-height: 1.8; margin-bottom: 1.5rem;">
+                                    Saya adalah <strong>Front-End Web Developer</strong> dengan visi untuk menciptakan pengalaman digital yang imersif dan futuristik. Dengan kombinasi antara desain modern dan teknologi mutakhir, saya membantu brand dan startup mewujudkan visi mereka ke dalam bentuk website yang memukau.
+                                </p>
+                                <p style="font-size: clamp(1rem, 2.5vw, 1.2rem); line-height: 1.8; color: rgba(255,255,255,0.7);">
+                                    Spesialisasi saya meliputi <strong>Responsive UI, Modern Web Design, 3D Integrations</strong>. Saya percaya bahwa website bukan hanya tentang fungsi, tetapi juga tentang pengalaman yang tak terlupakan.
+                                </p>
+                            </div>
+                            
+                            <!-- Quick Facts -->
+                            <div class="quick-facts">
+                                <div class="holographic-card" style="padding: 1rem; text-align: center;">
+                                    <i class="fas fa-coffee" style="font-size: clamp(1.5rem, 4vw, 2rem); color: var(--primary); margin-bottom: 0.5rem;"></i>
+                                    <div>1000+ Coffee</div>
+                                </div>
+                                <div class="holographic-card" style="padding: 1rem; text-align: center;">
+                                    <i class="fas fa-code" style="font-size: clamp(1.5rem, 4vw, 2rem); color: var(--secondary); margin-bottom: 0.5rem;"></i>
+                                    <div>Clean Code</div>
+                                </div>
+                                <div class="holographic-card" style="padding: 1rem; text-align: center;">
+                                    <i class="fas fa-heart" style="font-size: clamp(1.5rem, 4vw, 2rem); color: var(--accent); margin-bottom: 0.5rem;"></i>
+                                    <div>UI/UX Passion</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Skills Page -->
+            <div class="page" id="skills">
+                <div class="container">
+                    <h2 class="section-title">
+                        Technical <span>Skills</span>
+                    </h2>
+                    
+                    <div class="skills-grid-futuristic">
+                        <!-- Skill Cards -->
+                        <div class="skill-card">
+                            <i class="fab fa-html5 skill-icon"></i>
+                            <h3>HTML5</h3>
+                            <p>Semantic markup, accessibility, SEO optimization</p>
+                            <div class="skill-level">
+                                <div class="skill-progress" data-width="96" style="width: 96%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-card">
+                            <i class="fab fa-css3-alt skill-icon"></i>
+                            <h3>CSS3</h3>
+                            <p>Flexbox, Grid, Animations, Variables</p>
+                            <div class="skill-level">
+                                <div class="skill-progress" data-width="94" style="width: 94%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-card">
+                            <i class="fab fa-js skill-icon"></i>
+                            <h3>JavaScript</h3>
+                            <p>ES6+, Async/Await, DOM Manipulation</p>
+                            <div class="skill-level">
+                                <div class="skill-progress" data-width="89" style="width: 89%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-card">
+                            <i class="fas fa-mobile-alt skill-icon"></i>
+                            <h3>Responsive Design</h3>
+                            <p>Mobile-first, Cross-browser compatibility</p>
+                            <div class="skill-level">
+                                <div class="skill-progress" data-width="98" style="width: 98%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-card">
+                            <i class="fas fa-paint-brush skill-icon"></i>
+                            <h3>UI/UX Implementation</h3>
+                            <p>Figma to Code, Design Systems</p>
+                            <div class="skill-level">
+                                <div class="skill-progress" data-width="92" style="width: 92%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-card">
+                            <i class="fab fa-git-alt skill-icon"></i>
+                            <h3>Git & GitHub</h3>
+                            <p>Version Control, Collaboration, CI/CD</p>
+                            <div class="skill-level">
+                                <div class="skill-progress" data-width="88" style="width: 88%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-card">
+                            <i class="fas fa-cube skill-icon"></i>
+                            <h3>Three.js</h3>
+                            <p>3D Graphics, WebGL, Animations</p>
+                            <div class="skill-level">
+                                <div class="skill-progress" data-width="75" style="width: 75%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-card">
+                            <i class="fas fa-bolt skill-icon"></i>
+                            <h3>Performance</h3>
+                            <p>Optimization, Lazy Loading, Core Web Vitals</p>
+                            <div class="skill-level">
+                                <div class="skill-progress" data-width="85" style="width: 85%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Projects Page -->
+            <div class="page" id="projects">
+                <div class="container">
+                    <h2 class="section-title">
+                        Featured <span>Projects</span>
+                    </h2>
+                    
+                    <div class="projects-3d-grid">
+                        <!-- Project 1 -->
+                        <div class="project-card-3d">
+                            <div class="project-inner">
+                                <div class="project-image" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop');"></div>
+                                <h3>AI Neural Interface</h3>
+                                <div class="project-tech-stack">
+                                    <span class="tech-tag">Three.js</span>
+                                    <span class="tech-tag">TensorFlow</span>
+                                    <span class="tech-tag">WebGL</span>
+                                </div>
+                                <p style="color: rgba(255,255,255,0.7); margin: 1rem 0;">Dashboard neural network dengan visualisasi 3D real-time dan AI predictions.</p>
+                                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                    <a href="#" class="btn-icon"><i class="fas fa-external-link-alt"></i> Live Demo</a>
+                                    <a href="#" class="btn-icon"><i class="fab fa-github"></i> Source</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="project-card-3d">
+                            <div class="project-inner">
+                                <div class="project-image" style="background-image: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop');"></div>
+                                <h3>Quantum Dashboard</h3>
+                                <div class="project-tech-stack">
+                                    <span class="tech-tag">D3.js</span>
+                                    <span class="tech-tag">WebSockets</span>
+                                    <span class="tech-tag">CSS Grid</span>
+                                </div>
+                                <p style="color: rgba(255,255,255,0.7); margin: 1rem 0;">Analitik real-time dengan efek partikel dan animasi quantum.</p>
+                                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                    <a href="#" class="btn-icon"><i class="fas fa-external-link-alt"></i> Live Demo</a>
+                                    <a href="#" class="btn-icon"><i class="fab fa-github"></i> Source</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="project-card-3d">
+                            <div class="project-inner">
+                                <div class="project-image" style="background-image: url('apprem.png');"></div>
+                                <h3>App prem</h3>
+                                <div class="project-tech-stack">
+                                    <span class="tech-tag">WebXR</span>
+                                    <span class="tech-tag">Three.js</span>
+                                    <span class="tech-tag">GSAP</span>
+                                </div>
+                                <p style="color: rgba(255,255,255,0.7); margin: 1rem 0;">Website aplikasi premium dengan efek partikel dan animasi keren.</p>
+                                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                    <a href="https://reluxestore.page.gd" class="btn-icon"><i class="fas fa-external-link-alt"></i> Live Demo</a>
+                                    <a href="#" class="btn-icon"><i class="fab fa-github"></i> Source</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="project-card-3d">
+                            <div class="project-inner">
+                                <div class="project-image" style="background-image: url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&h=400&fit=crop');"></div>
+                                <h3>Cyberpunk Portfolio</h3>
+                                <div class="project-tech-stack">
+                                    <span class="tech-tag">WebGL</span>
+                                    <span class="tech-tag">Shader</span>
+                                    <span class="tech-tag">Particles</span>
+                                </div>
+                                <p style="color: rgba(255,255,255,0.7); margin: 1rem 0;">Portfolio dengan efek glitch, neon, dan particle system.</p>
+                                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                    <a href="#" class="btn-icon"><i class="fas fa-external-link-alt"></i> Live Demo</a>
+                                    <a href="#" class="btn-icon"><i class="fab fa-github"></i> Source</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Experience Page -->
+            <div class="page" id="experience">
+                <div class="container">
+                    <h2 class="section-title">
+                        Work <span>Experience</span>
+                    </h2>
+                    
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-content holographic-card">
+                                <h3 style="color: var(--primary);">2023 - present</h3>
+                                <h2 style="margin: 0.5rem 0;">Front-End Developer</h2>
+                                <h4 style="color: var(--secondary); margin-bottom: 1rem;">Startup Lokal</h4>
+                                <p>Membangun berbagai website interaktif untuk client international dengan teknologi modern.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-content holographic-card">
+                                <h3 style="color: var(--primary);">2021 - 2022</h3>
+                                <h2 style="margin: 0.5rem 0;">Junior Web Developer</h2>
+                                <h4 style="color: var(--secondary); margin-bottom: 1rem;">Startup Lokal</h4>
+                                <p>Memulai karir sebagai front-end developer, belajar dasar-dasar web development.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Page -->
+            <div class="page" id="contact">
+                <div class="container">
+                    <h2 class="section-title">
+                        Get In <span>Touch</span>
+                    </h2>
+                    
+                    <div class="contact-container">
+                        <div>
+                            <div class="holographic-card">
+                                <h3 style="font-size: clamp(1.5rem, 4vw, 2rem); margin-bottom: 1rem;">Let's Create Something Amazing</h3>
+                                <p style="color: rgba(255,255,255,0.7); margin-bottom: 2rem; line-height: 1.8;">
+                                    Saya selalu terbuka untuk diskusi tentang proyek baru, kolaborasi, atau peluang kerja. 
+                                    Kirim pesan dan mari kita wujudkan ide-ide futuristik bersama!
+                                </p>
+                                
+                                <div style="margin-bottom: 1rem; word-break: break-word;">
+                                    <i class="fas fa-map-marker-alt" style="color: var(--primary); margin-right: 1rem;"></i>
+                                    Cilegon, Indonesia (Remote Ready)
+                                </div>
+                                <div style="margin-bottom: 1rem; word-break: break-word;">
+                                    <i class="fas fa-envelope" style="color: var(--primary); margin-right: 1rem;"></i>
+                                    farelrizky801@gmail.com
+                                </div>
+                                <div style="margin-bottom: 2rem; word-break: break-word;">
+                                    <i class="fas fa-phone-alt" style="color: var(--primary); margin-right: 1rem;"></i>
+                                    +62 859 2205 4021
+                                </div>
+                                
+                                <div class="social-icons">
+                                    <a href="https://github.com/RELL3827" class="social-icon"><i class="fab fa-github"></i></a>
+                                    <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                                    <a href="https://www.instagram.com/rlrzprtm_?igsh=MTd1NWZxcG1xdzl0ag%3D%3D&utm_source=qr" class="social-icon"><i class="fab fa-instagram"></i></a>
+                                    <a href="https://wa.me/6285922054021" class="social-icon"><i class="fab fa-whatsapp"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <form class="holographic-card" id="contactForm">
+                                <div class="form-group-futuristic">
+                                    <input type="text" id="name" required>
+                                    <label for="name">Nama Lengkap</label>
+                                </div>
+                                
+                                <div class="form-group-futuristic">
+                                    <input type="email" id="email" required>
+                                    <label for="email">Email Address</label>
+                                </div>
+                                
+                                <div class="form-group-futuristic">
+                                    <input type="text" id="subject" required>
+                                    <label for="subject">Subject</label>
+                                </div>
+                                
+                                <div class="form-group-futuristic">
+                                    <textarea id="message" rows="5" required></textarea>
+                                    <label for="message">Pesan</label>
+                                </div>
+                                
+                                <button type="submit" class="btn-futuristic btn-primary" style="width: 100%;">
+                                    <i class="fab fa-whatsapp"></i> Kirim via WhatsApp
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="footer-futuristic">
+            <div class="container">
+                <p>&copy; <span id="currentYear"></span> Farel Rizky Pratama · Front-End Architect. All rights reserved.</p>
+                <p style="color: rgba(255,255,255,0.5); margin-top: 1rem;">Membangun masa depan, satu baris kode pada satu waktu</p>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Back to Top Button -->
+    <button id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script>
+        // ========== MAIN APPLICATION ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            // Body loaded class
+            document.body.classList.add('loaded');
+            
+            // ========== CUSTOM CURSOR (HANYA UNTUK DESKTOP) ==========
+            if (window.innerWidth >= 768) {
+                const cursor = document.getElementById('cursor');
+                const cursorFollower = document.getElementById('cursorFollower');
+                
+                document.addEventListener('mousemove', function(e) {
+                    gsap.to(cursor, {
+                        x: e.clientX,
+                        y: e.clientY,
+                        duration: 0.1
+                    });
+                    
+                    gsap.to(cursorFollower, {
+                        x: e.clientX,
+                        y: e.clientY,
+                        duration: 0.3
+                    });
+                });
+            }
+            
+            // ========== PARTICLES.JS ==========
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: '#6c5ce7' },
+                    shape: { type: 'circle' },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: '#6c5ce7',
+                        opacity: 0.2,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: 'none',
+                        random: true,
+                        straight: false,
+                        out_mode: 'out',
+                        bounce: false
+                    }
+                },
+                interactivity: {
+                    detect_on: 'canvas',
+                    events: {
+                        onhover: { enable: true, mode: 'repulse' },
+                        onclick: { enable: true, mode: 'push' },
+                        resize: true
+                    }
+                },
+                retina_detect: true
+            });
+            
+            // ========== THREE.JS BACKGROUND ==========
+            const canvas = document.getElementById('canvas-3d');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+            
+            function handleResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+            
+            window.addEventListener('resize', handleResize);
+            handleResize();
+            
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            
+            // Create geometric shapes
+            const geometry = new THREE.TorusKnotGeometry(1, 0.3, 100, 16);
+            const material = new THREE.MeshBasicMaterial({ color: 0x6c5ce7, wireframe: true, transparent: true, opacity: 0.2 });
+            const torusKnot = new THREE.Mesh(geometry, material);
+            scene.add(torusKnot);
+            
+            const starsGeometry = new THREE.BufferGeometry();
+            const starsCount = 800;
+            const starsPositions = new Float32Array(starsCount * 3);
+            
+            for (let i = 0; i < starsCount * 3; i += 3) {
+                starsPositions[i] = (Math.random() - 0.5) * 200;
+                starsPositions[i+1] = (Math.random() - 0.5) * 200;
+                starsPositions[i+2] = (Math.random() - 0.5) * 200;
+            }
+            
+            starsGeometry.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3));
+            const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.2, transparent: true });
+            const stars = new THREE.Points(starsGeometry, starsMaterial);
+            scene.add(stars);
+            
+            camera.position.z = 5;
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                torusKnot.rotation.x += 0.001;
+                torusKnot.rotation.y += 0.002;
+                
+                stars.rotation.y += 0.0002;
+                
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+            
+            // ========== MULTI-PAGE NAVIGATION ==========
+            const pages = document.querySelectorAll('.page');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pageTransition = document.getElementById('pageTransition');
+            
+            function showPage(pageId) {
+                pageTransition.classList.add('active');
+                
+                setTimeout(() => {
+                    pages.forEach(page => {
+                        page.classList.remove('active');
+                    });
+                    
+                    const activePage = document.getElementById(pageId);
+                    if (activePage) {
+                        activePage.classList.add('active');
+                    }
+                    
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('data-page') === pageId) {
+                            link.classList.add('active');
+                        }
+                    });
+                    
+                    setTimeout(() => {
+                        pageTransition.classList.remove('active');
+                    }, 200);
+                }, 400);
+                
+                document.getElementById('navMenu').classList.remove('active');
+            }
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageId = this.getAttribute('data-page');
+                    showPage(pageId);
+                    history.pushState(null, null, `#${pageId}`);
+                });
+            });
+            
+            window.addEventListener('popstate', function() {
+                const hash = window.location.hash.substring(1) || 'home';
+                showPage(hash);
+            });
+            
+            const initialHash = window.location.hash.substring(1) || 'home';
+            showPage(initialHash);
+            
+            // ========== HAMBURGER MENU ==========
+            const hamburger = document.getElementById('hamburger');
+            const navMenu = document.getElementById('navMenu');
+            
+            hamburger.addEventListener('click', function() {
+                navMenu.classList.toggle('active');
+            });
+            
+            // ========== BACK TO TOP ==========
+            const backToTop = document.getElementById('backToTop');
+            
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 500) {
+                    backToTop.style.display = 'flex';
+                } else {
+                    backToTop.style.display = 'none';
+                }
+            });
+            
+            backToTop.addEventListener('click', function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            
+            // ========== DOWNLOAD CV PALSU (HANYA SIMULASI) ==========
+            document.getElementById('downloadCV').addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Hanya menampilkan notifikasi tanpa mengunduh file apapun
+                alert('📄 CV Farel Rizky Pratama (Mode Demo - Tidak ada file yang diunduh)');
+                
+                // Tampilkan notifikasi kedua dengan gaya futuristik (opsional)
+                const demoNotification = document.createElement('div');
+                demoNotification.style.position = 'fixed';
+                demoNotification.style.top = '50%';
+                demoNotification.style.left = '50%';
+                demoNotification.style.transform = 'translate(-50%, -50%)';
+                demoNotification.style.background = 'var(--glass-bg)';
+                demoNotification.style.backdropFilter = 'blur(20px)';
+                demoNotification.style.border = '2px solid var(--primary)';
+                demoNotification.style.borderRadius = '30px';
+                demoNotification.style.padding = '2rem';
+                demoNotification.style.zIndex = '10000';
+                demoNotification.style.textAlign = 'center';
+                demoNotification.style.boxShadow = '0 0 50px var(--primary)';
+                demoNotification.style.animation = 'glowPulse 2s infinite';
+                demoNotification.innerHTML = `
+                    <i class="fas fa-rocket" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3 style="margin-bottom: 1rem;">🚀 FITUR DEMO</h3>
+                    <p style="margin-bottom: 1.5rem;">Ini hanya simulasi! Tidak ada file yang diunduh.</p>
+                    <button class="btn-futuristic btn-primary" onclick="this.parentElement.remove()" style="padding: 0.8rem 2rem;">Tutup</button>
+                `;
+                document.body.appendChild(demoNotification);
+                
+                // Hapus notifikasi setelah 5 detik
+                setTimeout(() => {
+                    if (document.body.contains(demoNotification)) {
+                        demoNotification.remove();
+                    }
+                }, 5000);
+            });
+            
+            // ========== CONTACT FORM - WHATSAPP ==========
+            document.getElementById('contactForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const subject = document.getElementById('subject').value.trim();
+                const message = document.getElementById('message').value.trim();
+                const phoneNumber = '6285922054021';
+                
+                const whatsappMessage = `*Halo Farel Rizky Pratama, saya ${name}*%0A%0A` +
+                                        `*Email:* ${email}%0A` +
+                                        `*Subjek:* ${subject}%0A%0A` +
+                                        `*Pesan:*%0A${message}`;
+                
+                const whatsappURL = `https://wa.me/${phoneNumber}?text=${whatsappMessage}`;
+                window.open(whatsappURL, '_blank');
+                
+                alert('✨ Mengarahkan ke WhatsApp... Pesan Anda akan terkirim.');
+            });
+            
+            // ========== CURRENT YEAR ==========
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            
+            // ========== 3D CARD EFFECT (HANYA DESKTOP) ==========
+            if (window.innerWidth >= 768) {
+                const cards = document.querySelectorAll('.project-card-3d');
+                
+                cards.forEach(card => {
+                    card.addEventListener('mousemove', function(e) {
+                        const rect = this.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        
+                        const centerX = rect.width / 2;
+                        const centerY = rect.height / 2;
+                        
+                        const rotateX = (y - centerY) / 20;
+                        const rotateY = (centerX - x) / 20;
+                        
+                        this.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(20px)`;
+                    });
+                    
+                    card.addEventListener('mouseleave', function() {
+                        this.style.transform = 'rotateX(0) rotateY(0) translateZ(0)';
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
